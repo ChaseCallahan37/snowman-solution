@@ -1,6 +1,7 @@
 // Snowman_Starter
 
 using System;
+using System.IO;
 
 //***********Start main ***********
 
@@ -50,6 +51,17 @@ static bool ValidMenuChoice(string userInput)
     entered 1, 2 or 3 and return false if they entered anything else.
     */
 
+    switch(userInput){
+        case "1":
+            return true;
+        case "2":
+            return true;
+        case "3":
+            return true;
+        default:
+            return false;
+    }
+
 }
 
 static void Route(string userInput, ref int gamesWon, ref int gamesLost)
@@ -57,6 +69,15 @@ static void Route(string userInput, ref int gamesWon, ref int gamesLost)
     /*Update to call Snowman if the user entered 1 and 
         * ScoreBoard if they entered 2
         */
+
+    switch(userInput){
+        case "1":
+            SnowMan(ref gamesWon, ref gamesLost);
+            break;
+        case "2":
+            ScoreBoard(gamesWon, gamesLost);
+            break;
+    }
 
 }
 
@@ -102,7 +123,7 @@ static void CheckChoice(char[] displayWord, string word, ref int missed, ref str
 {
     /*Check choice should check to see if the picked letter is in the word.
     * If it is, then it should update displayWord to show that letter and clear the screen.
-    * If it isn't, then it should increased missed.
+    * If it isn't, then it should increased missed and clear the screen.
     * If the pickedLetter is found to be in the guessed variable, then the user should be told that
     *   that letter has already been guessed and nothing else should happen.
     * If the pickedLetter is not found in the word, then the picked letter should be added to the guessed
@@ -112,26 +133,46 @@ static void CheckChoice(char[] displayWord, string word, ref int missed, ref str
     // Check to see if letter has been guessed
     if (LetterInWord(pickedLetter, guessed))
     {
-
+        System.Console.WriteLine($"You have already guessed '{pickedLetter}'");
     }
     else
     {
+        guessed += pickedLetter;
         // Check to see if letter is in word
         if (LetterInWord(pickedLetter, word))
         {
-
+            System.Console.WriteLine("Correct!!");
+            UpdateDisplayWord(pickedLetter, displayWord, word);
         }
         else
         {
-
+            System.Console.WriteLine("Incorrect :(");
+            missed++;
         }
     }
+    Pause();
 }
 
 static bool LetterInWord(char letter, string word)
 {
     // Checks to see if the letter is found anywhere in the word passed in
     // should return true or false
+
+    for(int i = 0; i < word.Length; i++){
+        if(letter == word[i]){
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static void UpdateDisplayWord(char pickedLetter, char[] displayWord, string word){
+    for(int i = 0; i < word.Length; i++){
+        if(word[i] == pickedLetter){
+            displayWord[i] = pickedLetter;
+        }
+    }
 }
 
 static bool KeepGoing(char[] displayWord, int missed)
@@ -141,6 +182,17 @@ static bool KeepGoing(char[] displayWord, int missed)
         * fully guessed the word
         */
 
+    return missed < 7 && HasUnderscores(displayWord);
+
+}
+
+static bool HasUnderscores(char[] displayWord){
+    for(int i = 0; i < displayWord.Length; i++){
+        if(displayWord[i] == '_'){
+            return true;
+        }
+    }
+    return false;
 }
 
 static void ShowBoard(char[] displayWord, int missed, string guessed)
@@ -164,7 +216,13 @@ static char[] SetDisplayWord(string word)
     * underscores, of the same length of the word
     * passed into the method
     */
+    char[] displayWord = new char[word.Length];
 
+    for(int i = 0; i < word.Length; i++){
+        displayWord[i] = '_';
+    }
+
+    return displayWord;
 }
 
 static string GetRandomWord()
@@ -172,6 +230,11 @@ static string GetRandomWord()
     // Calls the GetWordList to retrieve the list of words,
     // chooses a word randomly from the list, and return that word
 
+    string[] words = GetWordList();
+
+    Random rnd = new Random();
+    
+    return words[rnd.Next(words.Length)];
 
 }
 
@@ -181,7 +244,21 @@ static string[] GetWordList()
     // Assume there will never be more than 6 words
     const int MAX_WORDS = 6;
     string[] words = new string[MAX_WORDS];
+    int count = 0;
 
+    StreamReader inFile = new StreamReader("words.txt");
+
+    string line = inFile.ReadLine();
+
+    while(line != "" && line != null){
+        words[count] = line;
+        count++;
+        line = inFile.ReadLine();
+    }
+
+    inFile.Close();
+
+    return words;
 }
 
 static void ScoreBoard(int gamesWon, int gamesLost)
